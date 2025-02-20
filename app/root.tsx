@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import TopBar from "./components/TopBar";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -33,7 +34,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <TopBar usertype="admin" />
+        <main className="bg-base-100 flex flex-col h-[calc(100vh-4rem)] mt-16">
+          {children}
+        </main>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -62,7 +66,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
+    <main className="p-4 container mx-auto">
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (

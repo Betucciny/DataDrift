@@ -1,5 +1,5 @@
+import PreviewWindow from "~/components/PreviewWindow";
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -8,6 +8,10 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export default function Home() {
-  return <Welcome />;
+export default function Email({}: Route.ComponentProps) {
+  return (
+    <div className="m-3">
+      <h1>Home</h1>
+    </div>
+  );
 }
