@@ -10,10 +10,7 @@ export async function getClientsSearch(
   baseUrl.pathname = "/clients";
   baseUrl.searchParams.append("search", searchTerm.toUpperCase());
   baseUrl.searchParams.append("page", page.toString());
-
   const response = await fetch(baseUrl);
-
   const data: ClientsSearchResponse = await response.json();
-  console.log(data);
   return data;
 }

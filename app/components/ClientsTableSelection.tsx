@@ -1,14 +1,14 @@
 import { useSearchParams } from "react-router";
-import type { Client } from "~/types";
+import type { ClientApi } from "~/types";
 import { capitalizeFirstLetterOfEachWord } from "~/utils/strings";
 import { useState, useEffect } from "react";
 
 type ClientsTableSelectionProps = {
-  clients: Client[];
+  clients: ClientApi[];
   currentPage: number;
   totalPages: number;
-  selectedClient: Client | null;
-  setClient: React.Dispatch<React.SetStateAction<Client | null>>;
+  selectedClient: ClientApi | null;
+  setClient: React.Dispatch<React.SetStateAction<ClientApi | null>>;
   shown: boolean;
   setShown: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -31,14 +31,20 @@ export default function ClientsTableSelection({
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      setSearchParams({ clientPage: (currentPage + 1).toString() });
+      setSearchParams((prev) => {
+        prev.set("clientPage", (currentPage + 1).toString());
+        return prev;
+      });
       setLoading(true);
     }
   };
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      setSearchParams({ clientPage: (currentPage - 1).toString() });
+      setSearchParams((prev) => {
+        prev.set("clientPage", (currentPage - 1).toString());
+        return prev;
+      });
       setLoading(true);
     }
   };
@@ -47,8 +53,16 @@ export default function ClientsTableSelection({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const value = formData.get("clientSearch") as string;
-    setSearchParams({ clientSearch: value });
+    setSearchParams((prev) => {
+      prev.set("clientSearch", value);
+      return prev;
+    });
     setLoading(true);
+  };
+
+  const handleSelectClient = (client: ClientApi) => {
+    setClient(client);
+    setShown(false);
   };
 
   return (
@@ -98,10 +112,7 @@ export default function ClientsTableSelection({
                   {clients.map((client) => (
                     <tr
                       key={client.id}
-                      onClick={() => {
-                        setClient(client);
-                        setShown(false);
-                      }}
+                      onClick={() => handleSelectClient(client)}
                       className={`cursor-pointer hover:bg-base-200 ${
                         selectedClient?.id === client.id ? "bg-base-300" : ""
                       }`}

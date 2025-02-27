@@ -6,9 +6,24 @@ import DefaultOneProduct from "~/emails/templates/DefaultOneProduct";
 import { Form } from "react-router";
 import { getClientsSearch } from "~/api/clients";
 import ClientsTableSelection from "~/components/ClientsTableSelection";
-import type { Client } from "~/types";
-import { useState } from "react";
+import type {
+  ClientApi,
+  ClientsSearchResponse,
+  ProductApi,
+  ProductComplete,
+  ProductsRecommendationResponse,
+  RecommendationProductComplete,
+} from "~/types";
+import { useEffect, useState } from "react";
 import { capitalizeFirstLetterOfEachWord } from "~/utils/strings";
+import type { URLSearchParams } from "node:url";
+import {
+  getProductsComplete,
+  getProductsFromRecommendation,
+} from "~/api/products";
+import { ProductsArray } from "~/components/products/ProductsArray";
+import { useSearchParams } from "react-router";
+import FormGetProducts from "~/components/products/FormGetProducts";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -24,28 +39,71 @@ export async function action({ request }: Route.ActionArgs) {
       <DefaultOneProduct />
     </MainEmail>
   );
-  console.log(emailHtmlPreview);
   return { emailHtmlPreview };
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams;
-  console.log(searchParams);
+  const [dataClients, productsFromRecommendation] = await Promise.all([
+    getClients(searchParams),
+    getProductsFromRecommendatio(searchParams),
+  ]);
+
+  return { dataClients, productsFromRecommendation };
+}
+
+async function getProductsFromRecommendatio(
+  searchParams: URLSearchParams
+): Promise<RecommendationProductComplete | undefined> {
+  const client = searchParams.get("client");
+  const limit = parseInt(searchParams.get("limit") ?? "10");
+  const offset = parseInt(searchParams.get("offset") ?? "0");
+  if (!client) return undefined;
+  const products = await getProductsFromRecommendation(client, limit, offset);
+  const productsComplete = await getProductsComplete(products.products);
+  return {
+    products: productsComplete,
+    client: products.clients,
+  };
+}
+
+async function getClients(
+  searchParams: URLSearchParams
+): Promise<ClientsSearchResponse> {
   const searchTerm = searchParams.get("clientSearch") ?? "";
   const clientPage = parseInt(searchParams.get("clientPage") ?? "1");
-  const dataClients = await getClientsSearch(searchTerm, clientPage);
-  return { dataClients };
+  return await getClientsSearch(searchTerm, clientPage);
 }
 
 export default function Email({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { dataClients } = loaderData;
-  const [client, setClient] = useState<Client | null>(null);
-  const [showClientSearch, setShowClientSearch] = useState(false);
-
+  const { dataClients, productsFromRecommendation } = loaderData;
   const emailHtmlPreview = actionData?.emailHtmlPreview ?? "";
+
+  const [client, setClient] = useState<ClientApi | null>(null);
+  const [showClientSearch, setShowClientSearch] = useState(false);
+  const [products, setProducts] = useState<ProductComplete[]>([]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    setProducts((prevProducts) => {
+      return [...prevProducts, ...(productsFromRecommendation?.products ?? [])];
+    });
+  }, [productsFromRecommendation]);
+
+  useEffect(() => {
+    setSearchParams((prev) => {
+      prev.delete("client");
+      prev.delete("limit");
+      prev.delete("offset");
+      return prev;
+    });
+    setProducts([]);
+  }, [client]);
+
   return (
     <div className="flex flex-col flex-1 lg:mr-[30vw] mr-0">
       <div className="flex-1 overflow-y-scroll m-3">
@@ -68,27 +126,24 @@ export default function Email({
               </label>
               <button
                 className="btn btn-primary"
-                onClick={() => setShowClientSearch((show) => !show)}
+                onClick={() => setShowClientSearch(true)}
               >
                 Seleccionar Cliente
               </button>
             </div>
           </div>
-          <div className="mock-data">
-            <h2 className="text-xl font-semibold mb-2">Mock Data</h2>
-            <ul className="list-disc pl-5">
-              {Array.from({ length: 40 }, (_, i) => (
-                <li key={i}>Client {i + 1}</li>
-              ))}
-            </ul>
-          </div>
+          {products && (
+            <ProductsArray products={products} setProducts={setProducts} />
+          )}
         </div>
-        <Form preventScrollReset method="post">
+        <FormGetProducts client={client} />
+        {/* <Form preventScrollReset method="post">
           <button type="submit" className="btn btn-primary">
             Visualizar
           </button>
-        </Form>
+        </Form> */}
       </div>
+
       <PreviewWindow emailHtmlPreview={emailHtmlPreview} />
     </div>
   );
