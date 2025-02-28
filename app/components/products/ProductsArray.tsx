@@ -13,15 +13,23 @@ export function ProductsArray({ products, setProducts }: ProductsArrayProps) {
   }
 
   return (
-    <Form>
+    <Form
+      className="flex flex-col items-stretch"
+      preventScrollReset
+      method="post"
+    >
       {products.map((product, index) => (
         <ProductShowcase
-          key={product.id}
+          key={index}
           product={product}
           index={index}
           onDelete={() => onDelete(product)}
+          setProducts={setProducts}
         />
       ))}
+      <button className="btn btn-primary" type="submit">
+        Visualizar Email
+      </button>
     </Form>
   );
 }

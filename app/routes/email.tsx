@@ -4,7 +4,7 @@ import { render } from "@react-email/components";
 import MainEmail from "~/emails/MainEmail";
 import DefaultOneProduct from "~/emails/templates/DefaultOneProduct";
 import { Form } from "react-router";
-import { getClientsSearch } from "~/api/clients";
+import { getClientsSearch } from "~/.server/clients";
 import ClientsTableSelection from "~/components/ClientsTableSelection";
 import type {
   ClientApi,
@@ -20,7 +20,7 @@ import type { URLSearchParams } from "node:url";
 import {
   getProductsComplete,
   getProductsFromRecommendation,
-} from "~/api/products";
+} from "~/.server/products";
 import { ProductsArray } from "~/components/products/ProductsArray";
 import { useSearchParams } from "react-router";
 import FormGetProducts from "~/components/products/FormGetProducts";
@@ -33,7 +33,29 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  let formData = await request.formData();
+  const formData = await request.formData();
+  console.log(formData);
+  const products = [];
+  for (let [key, value] of formData.entries()) {
+    const match = key.match(/^product-(\d+)-(name|price|url)$/);
+    if (match) {
+      const index = parseInt(match[1]);
+      const field = match[2];
+      if (!products[index]) {
+        products[index] = { name: "", price: 0, url: "" };
+      }
+      if (field === "name") {
+        products[index].name = value as string;
+      } else if (field === "price") {
+        products[index].price = parseFloat(value as string);
+      } else if (field === "url") {
+        products[index].url = value as string;
+      }
+    }
+  }
+
+  console.log(products);
+
   const emailHtmlPreview = await render(
     <MainEmail userName="Betucciny">
       <DefaultOneProduct />
@@ -90,7 +112,14 @@ export default function Email({
 
   useEffect(() => {
     setProducts((prevProducts) => {
-      return [...prevProducts, ...(productsFromRecommendation?.products ?? [])];
+      const newProducts = productsFromRecommendation?.products ?? [];
+      const existingProductIds = new Set(
+        prevProducts.map((product) => product.id)
+      );
+      const filteredNewProducts = newProducts.filter(
+        (product) => !existingProductIds.has(product.id)
+      );
+      return [...prevProducts, ...filteredNewProducts];
     });
   }, [productsFromRecommendation]);
 
@@ -132,16 +161,14 @@ export default function Email({
               </button>
             </div>
           </div>
+          <div className="flex flex-row justify-between space-x-2">
+            <FormGetProducts client={client} setProducts={setProducts} />
+            {/* <FormGetProducts client={client} /> */}
+          </div>
           {products && (
             <ProductsArray products={products} setProducts={setProducts} />
           )}
         </div>
-        <FormGetProducts client={client} />
-        {/* <Form preventScrollReset method="post">
-          <button type="submit" className="btn btn-primary">
-            Visualizar
-          </button>
-        </Form> */}
       </div>
 
       <PreviewWindow emailHtmlPreview={emailHtmlPreview} />

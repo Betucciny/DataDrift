@@ -15,7 +15,6 @@ export async function getProductsFromRecommendation(
   );
   const realLimit = limit + offset;
   baseUrl.pathname = `/recommend/${clientId}/${realLimit}`;
-  console.log("baseUrl", baseUrl.toString());
   const response = await fetch(baseUrl.toString());
   const data: ProductsRecommendationResponse = await response.json();
   const products = data.products.slice(offset, realLimit);
@@ -37,10 +36,33 @@ export async function getProductsComplete(
     const productDb = productsDb.find(
       (productDb) => productDb.sae_id === product.id
     );
+    const path = productDb?.imageUrl
+      ? new URL(`https://${process.env.MINIO_URL ?? ""}`)
+      : undefined;
+    if (productDb?.imageUrl) {
+      path!.pathname = productDb.imageUrl;
+    }
     return {
       ...product,
-      imageUrl: productDb?.imageUrl ?? undefined,
+      imageUrl: path?.toString(),
     };
   });
   return productsComplete;
+}
+
+export async function updateProductImage(
+  sae_id: string,
+  imageUrl: string
+): Promise<boolean> {
+  try {
+    await prisma.product.create({
+      data: {
+        sae_id,
+        imageUrl,
+      },
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -4,13 +4,30 @@ import { useSearchParams } from "react-router";
 
 type FormGetProductsProps = {
   client: ClientApi | null;
+  setProducts: React.Dispatch<React.SetStateAction<any>>;
 };
 
-export default function FormGetProducts({ client }: FormGetProductsProps) {
-  const [searchParams] = useSearchParams(new URLSearchParams());
+export default function FormGetProducts({
+  client,
+  setProducts,
+}: FormGetProductsProps) {
+  const [searchParams, setSearchParams] = useSearchParams(
+    new URLSearchParams()
+  );
   const currentOffset = searchParams.get("offset") ?? "0";
   const currentLimit = searchParams.get("limit") ?? "0";
   const nextOffset = parseInt(currentOffset) + parseInt(currentLimit);
+
+  const handleReset = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setSearchParams((prev) => {
+      prev.delete("offset");
+      prev.delete("limit");
+      prev.delete("client");
+      return prev;
+    });
+    setProducts([]);
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     if (!client) {
@@ -20,23 +37,40 @@ export default function FormGetProducts({ client }: FormGetProductsProps) {
   };
 
   return (
-    <Form preventScrollReset method="get" onSubmit={handleSubmit}>
-      <input type="hidden" name="client" value={client?.id ?? ""} />
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-        <label className="block text-lg font-semibold text-content mb-4 md:mb-0">
-          Límite:
-          <input
-            type="number"
-            name="limit"
-            defaultValue="1"
-            className="input input-bordered ml-2"
-          />
-        </label>
-        <input type="hidden" name="offset" value={nextOffset} />
-      </div>
-      <button type="submit" className="btn btn-primary">
-        Visualizar
-      </button>
-    </Form>
+    <div className="flex grow flex-row justify-around items-center shadow-md rounded-lg p-4">
+      <h3 className="text-xl font-bold mb-4">Agregar productos recomendados</h3>
+      <Form
+        className="flex flex-col md:flex-row md:justify-around items-center text-base-content space-x-5"
+        preventScrollReset
+        method="get"
+        onSubmit={handleSubmit}
+      >
+        <input type="hidden" name="client" value={client?.id ?? ""} />
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+          <label className="block text-lg font-semibold text-content mb-4 md:mb-0">
+            Límite:
+            <input
+              type="number"
+              name="limit"
+              defaultValue="1"
+              className="input input-bordered ml-2"
+            />
+          </label>
+          <input type="hidden" name="offset" value={nextOffset} />
+        </div>
+        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+          <button type="submit" className="btn btn-primary">
+            Agregar Productos
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleReset}
+          >
+            Resetear Productos
+          </button>
+        </div>
+      </Form>
+    </div>
   );
 }
