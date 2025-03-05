@@ -1,38 +1,36 @@
 import { useSearchParams } from "react-router";
-import type { ClientApi } from "~/types";
+import type { ClientApi, ProductComplete } from "~/types";
 import { capitalizeFirstLetterOfEachWord } from "~/utils/strings";
 import { useState, useEffect } from "react";
 
-type ClientsTableSelectionProps = {
-  clients: ClientApi[];
+type ProductsTableSelectionProps = {
+  products: ProductComplete[];
   currentPage: number;
   totalPages: number;
-  selectedClient: ClientApi | null;
-  setClient: React.Dispatch<React.SetStateAction<ClientApi | null>>;
+  setProducts: React.Dispatch<React.SetStateAction<ProductComplete[]>>;
   shown: boolean;
   setShown: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default function ClientsTableSelection({
-  selectedClient,
-  clients,
-  setClient,
+export default function ProductsTableSelection({
+  products,
+  setProducts,
   totalPages,
   currentPage,
   shown,
   setShown,
-}: ClientsTableSelectionProps) {
+}: ProductsTableSelectionProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(false);
-  }, [clients]);
+  }, [products]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setSearchParams((prev) => {
-        prev.set("clientPage", (currentPage + 1).toString());
+        prev.set("productPage", (currentPage + 1).toString());
         return prev;
       });
       setLoading(true);
@@ -42,7 +40,7 @@ export default function ClientsTableSelection({
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setSearchParams((prev) => {
-        prev.set("clientPage", (currentPage - 1).toString());
+        prev.set("productPage", (currentPage - 1).toString());
         return prev;
       });
       setLoading(true);
@@ -52,17 +50,20 @@ export default function ClientsTableSelection({
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const value = formData.get("clientSearch") as string;
+    const value = formData.get("productSearch") as string;
     setSearchParams((prev) => {
-      prev.set("clientSearch", value);
+      prev.set("productSearch", value);
       return prev;
     });
     setLoading(true);
   };
-
-  const handleSelectClient = (client: ClientApi) => {
-    setClient(client);
-    setShown(false);
+  const handleSelectProduct = (product: ProductComplete) => {
+    setProducts((prevProducts) => {
+      if (!prevProducts.some((p) => p.id === product.id)) {
+        return [...prevProducts, product];
+      }
+      return prevProducts;
+    });
   };
 
   return (
@@ -72,10 +73,10 @@ export default function ClientsTableSelection({
           <form onSubmit={handleSearch} className="join w-full">
             <input
               type="text"
-              name="clientSearch"
-              placeholder="Buscar Clientes"
+              name="productSearch"
+              placeholder="Buscar Productos"
               className="input input-bordered join-item w-full text-base-content bg-base-100"
-              defaultValue={searchParams.get("clientSearch") || ""}
+              defaultValue={searchParams.get("productSearch") || ""}
             />
             <button type="submit" className="btn join-item">
               Search
@@ -109,16 +110,14 @@ export default function ClientsTableSelection({
                   </tr>
                 </thead>
                 <tbody>
-                  {clients.map((client) => (
+                  {products.map((product) => (
                     <tr
-                      key={client.id}
-                      onClick={() => handleSelectClient(client)}
-                      className={`cursor-pointer hover:bg-base-200 ${
-                        selectedClient?.id === client.id ? "bg-base-300" : ""
-                      }`}
+                      key={product.id}
+                      onClick={() => handleSelectProduct(product)}
+                      className={`cursor-pointer hover:bg-base-200`}
                     >
                       <td className="p-2 overflow-clip">
-                        {capitalizeFirstLetterOfEachWord(client.name)}
+                        {capitalizeFirstLetterOfEachWord(product.description)}
                       </td>
                     </tr>
                   ))}

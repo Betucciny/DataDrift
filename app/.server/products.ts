@@ -2,8 +2,11 @@ import type {
   ProductApi,
   ProductComplete,
   ProductsRecommendationResponse,
+  ProductsCompleteSearchResponse,
+  ProductsSearchResponse,
 } from "~/types";
 import { prisma } from "./db";
+import type { Product } from "@prisma/client";
 
 export async function getProductsFromRecommendation(
   clientId: string,
@@ -19,6 +22,21 @@ export async function getProductsFromRecommendation(
   const data: ProductsRecommendationResponse = await response.json();
   const products = data.products.slice(offset, realLimit);
   return { clients: data.client, products };
+}
+
+export async function getProductsSearch(
+  searchTerm: string,
+  page: number = 1
+): Promise<ProductsSearchResponse> {
+  const baseUrl = new URL(
+    process.env.RECOMMENDATIONS_SERVER ?? "http://localhost:3000"
+  );
+  baseUrl.pathname = "/products";
+  baseUrl.searchParams.append("search", searchTerm.toUpperCase());
+  baseUrl.searchParams.append("page", page.toString());
+  const response = await fetch(baseUrl);
+  const data: ProductsSearchResponse = await response.json();
+  return data;
 }
 
 export async function getProductsComplete(
@@ -64,5 +82,19 @@ export async function updateProductImage(
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function deleteProductImage(
+  sae_id: string
+): Promise<Product | undefined> {
+  try {
+    return await prisma.product.delete({
+      where: {
+        sae_id,
+      },
+    });
+  } catch {
+    return undefined;
   }
 }

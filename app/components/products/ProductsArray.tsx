@@ -17,7 +17,16 @@ export function ProductsArray({ products, setProducts }: ProductsArrayProps) {
       className="flex flex-col items-stretch"
       preventScrollReset
       method="post"
+      action="/email"
     >
+      {products.length === 0 && (
+        <div className="flex flex-col justify-center items-center my-4 h-32">
+          <h3>No hay productos agregados.</h3>
+          <p>
+            Por favor, agregue productos mediante recomendaciones o manualmente.
+          </p>
+        </div>
+      )}
       {products.map((product, index) => (
         <ProductShowcase
           key={index}

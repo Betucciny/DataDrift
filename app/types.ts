@@ -16,6 +16,18 @@ export type ProductApi = {
   price: number;
 };
 
+export type ProductsSearchResponse = {
+  products: ProductApi[];
+  current_page: number;
+  total_pages: number;
+};
+
+export type ProductsCompleteSearchResponse = {
+  products: ProductComplete[];
+  current_page: number;
+  total_pages: number;
+};
+
 export type ProductsRecommendationResponse = {
   client: ClientApi;
   products: ProductApi[];

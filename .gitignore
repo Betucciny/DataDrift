@@ -7,3 +7,7 @@
 
 #ENV
 .env
+
+/uploads/
+
+/prisma/dev.db

@@ -7,6 +7,7 @@ type TopBatProps = {
 };
 
 export default function TopBar({ usertype }: TopBatProps) {
+  console.log(usertype);
   const routes = mainRoutes.filter((route) => route.allowed.includes(usertype));
   return (
     <div className="navbar bg-base-100 shadow-sm fixed top-0 left-0 right-0 z-50">
@@ -74,9 +75,15 @@ export default function TopBar({ usertype }: TopBatProps) {
         </ul>
       </div>
       <div className="navbar-end">
-        <NavLink to="login" className="btn">
-          Iniciar Sesión
-        </NavLink>
+        {usertype === "user" ? (
+          <NavLink to="login" className="btn">
+            Iniciar Sesión
+          </NavLink>
+        ) : (
+          <NavLink to="logout" className="btn">
+            Cerrar Sesión
+          </NavLink>
+        )}
       </div>
     </div>
   );

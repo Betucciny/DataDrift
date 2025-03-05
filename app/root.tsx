@@ -7,9 +7,13 @@ import {
   ScrollRestoration,
 } from "react-router";
 
+import { getSession } from "./.server/auth";
+
 import type { Route } from "./+types/root";
 import "./app.css";
 import TopBar from "./components/TopBar";
+import type { UserTypes } from "./constants/routes";
+import { useRouteLoaderData } from "react-router";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -24,7 +28,19 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+  const isLogIn = session.get("authenticated") === true;
+  console.log(session.get("authenticated"));
+  const user: { user: UserTypes } = isLogIn
+    ? { user: "admin" }
+    : { user: "user" };
+  return user;
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useRouteLoaderData("root");
+
   return (
     <html lang="en">
       <head>
@@ -34,7 +50,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <TopBar usertype="admin" />
+        <TopBar usertype={data.user} />
         <main className="bg-base-100 flex flex-col h-[calc(100vh-4rem)] mt-16">
           {children}
         </main>

@@ -8,6 +8,8 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+export async function loader() {}
+
 export default function Email({}: Route.ComponentProps) {
   return (
     <div className="m-3">

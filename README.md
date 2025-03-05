@@ -1,5 +1,10 @@
 #TODO
-- [ ] Daysiui install
+- [x] Daysiui install
 - [ ] Authentication
-- [ ] Root Sidebar and layout
-- [ ] Connections to my apis
+- [x] Root Sidebar and layout
+- [x] Connections to my apis
+- [x] Add upload image for product
+- [x] Add delete image for product
+- [ ] Add logo manager
+- [ ] Add generate start text
+- [ ] Add generate text for each product

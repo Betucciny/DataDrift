@@ -13,13 +13,13 @@ export const routes: Route[] = [
     allowed: ["admin", "user"],
   },
   {
-    name: "Inicio de sesión",
-    path: "/login",
-    allowed: ["user"],
-  },
-  {
     name: "Email",
     path: "/email",
+    allowed: ["admin"],
+  },
+  {
+    name: "Configuracion",
+    path: "/settings",
     allowed: ["admin"],
   },
 ];

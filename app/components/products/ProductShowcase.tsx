@@ -34,7 +34,7 @@ export default function ProductShowcase({
 
     const formData = new FormData();
     formData.append("image", selectedFile);
-    formData.append("sae_id", product.id.toString());
+    formData.append("sae_id", product.id);
 
     try {
       const response = await fetch("/api/products/upload-image", {
@@ -54,7 +54,34 @@ export default function ProductShowcase({
         productUpdated[0].imageUrl = path;
         return [...prevProducts];
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log("Error: ", error);
+    }
+  }
+
+  async function handleImageDelete(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(`/api/products/delete-image/${product.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to delete image:", errorText);
+        throw new Error("Failed to delete image");
+      }
+      setProducts((prevProducts) => {
+        const productUpdated = prevProducts.map((productFilter) =>
+          productFilter.id === product.id
+            ? { ...productFilter, imageUrl: undefined }
+            : productFilter
+        );
+        return productUpdated;
+      });
+    } catch (error) {
+      console.log("Error: ", error);
+    }
   }
 
   return (
@@ -70,9 +97,13 @@ export default function ProductShowcase({
           <img
             src={product.imageUrl}
             alt={product.description}
-            className="w-full h-48 object-cover"
+            className="w-full h-48 object-contain"
           />
-          <button className="btn btn-primary" type="button">
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={handleImageDelete}
+          >
             Borrar imagen
           </button>
         </figure>
@@ -88,11 +119,6 @@ export default function ProductShowcase({
               className="file-input file-input-primary"
               accept="image/*"
               onChange={handleFileChange}
-            />
-            <input
-              name="action"
-              defaultValue="imageUpload"
-              className="hidden"
             />
             <button className="btn btn-primary" onClick={handleFileUpload}>
               Subir imagen
@@ -118,6 +144,14 @@ export default function ProductShowcase({
           pattern="\d*"
           defaultValue={product.price.toFixed(2)}
         />
+        <input
+          className="text-lg font-semibold input w-full"
+          name={`product-${index}-text`}
+          type="text"
+        />
+        <button className="btn btn-primary" onClick={handleFileUpload}>
+          Subir imagen
+        </button>
         <input
           className="hidden"
           name={`product-${index}-url`}

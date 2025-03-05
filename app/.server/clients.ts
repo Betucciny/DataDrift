@@ -1,4 +1,9 @@
-import type { ClientsSearchResponse } from "~/types";
+import type {
+  ClientsSearchResponse,
+  ProductApi,
+  ProductsSearchResponse,
+  ProductsCompleteSearchResponse,
+} from "~/types";
 
 export async function getClientsSearch(
   searchTerm: string,

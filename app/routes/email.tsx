@@ -3,7 +3,6 @@ import type { Route } from "./+types/email";
 import { render } from "@react-email/components";
 import MainEmail from "~/emails/MainEmail";
 import DefaultOneProduct from "~/emails/templates/DefaultOneProduct";
-import { Form } from "react-router";
 import { getClientsSearch } from "~/.server/clients";
 import ClientsTableSelection from "~/components/ClientsTableSelection";
 import type {
@@ -11,6 +10,7 @@ import type {
   ClientsSearchResponse,
   ProductApi,
   ProductComplete,
+  ProductsCompleteSearchResponse,
   ProductsRecommendationResponse,
   RecommendationProductComplete,
 } from "~/types";
@@ -20,10 +20,13 @@ import type { URLSearchParams } from "node:url";
 import {
   getProductsComplete,
   getProductsFromRecommendation,
+  getProductsSearch,
 } from "~/.server/products";
 import { ProductsArray } from "~/components/products/ProductsArray";
 import { useSearchParams } from "react-router";
 import FormGetProducts from "~/components/products/FormGetProducts";
+import ProductsTableSelection from "~/components/ProductsTableSelection";
+import { requireAuth } from "~/.server/auth";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -65,13 +68,16 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireAuth(request);
   const searchParams = new URL(request.url).searchParams;
-  const [dataClients, productsFromRecommendation] = await Promise.all([
-    getClients(searchParams),
-    getProductsFromRecommendatio(searchParams),
-  ]);
+  const [dataClients, productsFromRecommendation, dataProducts] =
+    await Promise.all([
+      getClients(searchParams),
+      getProductsFromRecommendatio(searchParams),
+      getProductsFromSearch(searchParams),
+    ]);
 
-  return { dataClients, productsFromRecommendation };
+  return { dataClients, productsFromRecommendation, dataProducts };
 }
 
 async function getProductsFromRecommendatio(
@@ -89,6 +95,20 @@ async function getProductsFromRecommendatio(
   };
 }
 
+async function getProductsFromSearch(
+  searchParams: URLSearchParams
+): Promise<ProductsCompleteSearchResponse> {
+  const searchTerm = searchParams.get("productSearch") ?? "";
+  const productPage = parseInt(searchParams.get("productPage") ?? "1");
+  const productsApi = await getProductsSearch(searchTerm, productPage);
+  const productsComplete = await getProductsComplete(productsApi.products);
+  return {
+    products: productsComplete,
+    current_page: productsApi.current_page,
+    total_pages: productsApi.total_pages,
+  };
+}
+
 async function getClients(
   searchParams: URLSearchParams
 ): Promise<ClientsSearchResponse> {
@@ -101,12 +121,14 @@ export default function Email({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { dataClients, productsFromRecommendation } = loaderData;
+  const { dataClients, productsFromRecommendation, dataProducts } = loaderData;
   const emailHtmlPreview = actionData?.emailHtmlPreview ?? "";
 
   const [client, setClient] = useState<ClientApi | null>(null);
-  const [showClientSearch, setShowClientSearch] = useState(false);
   const [products, setProducts] = useState<ProductComplete[]>([]);
+
+  const [showClientSearch, setShowClientSearch] = useState(false);
+  const [showProductSearch, setShowProductSearch] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -163,11 +185,28 @@ export default function Email({
           </div>
           <div className="flex flex-row justify-between space-x-2">
             <FormGetProducts client={client} setProducts={setProducts} />
-            {/* <FormGetProducts client={client} /> */}
           </div>
           {products && (
             <ProductsArray products={products} setProducts={setProducts} />
           )}
+          <div className="mb-4 rounded-md p-4 flex flex-col relative">
+            <ProductsTableSelection
+              products={dataProducts.products}
+              setProducts={setProducts}
+              totalPages={dataProducts.total_pages}
+              currentPage={dataProducts.current_page}
+              shown={showProductSearch}
+              setShown={setShowProductSearch}
+            />
+            <div className="flex flex-col md:flex-row justify-center items-center ">
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowProductSearch(true)}
+              >
+                Agregar Producto sin Recomendacion
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
