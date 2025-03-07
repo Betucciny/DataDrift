@@ -1,11 +1,7 @@
-import { useState } from "react";
-import { useFetcher } from "react-router";
-
 import { checkToken, commitSession, getSession } from "~/.server/auth";
-import { createCookieSessionStorage, redirect } from "react-router";
+import { redirect } from "react-router";
 import type { Route } from "./+types/login";
 import { Form } from "react-router";
-import { useActionData } from "react-router";
 import { useNavigation } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
@@ -19,7 +15,6 @@ export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const token = formData.get("token");
   if (!token) return { error: "Por favor coloca tu token" };
-  console.log(token);
   const isValid = checkToken(token.toString());
 
   if (!isValid) {

@@ -4,6 +4,7 @@ import express from "express";
 import multer from "multer";
 import minioClient from "./minioClient";
 import { deleteProductImage, updateProductImage } from "~/.server/products";
+import { deleteLogo, uploadLogo } from "~/.server/settings";
 
 declare module "react-router" {
   interface AppLoadContext {
@@ -83,55 +84,55 @@ app.post(
 );
 
 // API route to handle logo upload
-app.post(
-  "/api/products/upload-logo",
-  upload.single("logo"),
-  async function (req, res) {
-    const { file } = req;
-    const { sae_id } = req.body;
-    if (!file || !sae_id) {
-      res.status(400).send("No file uploaded.");
-      return;
-    }
-    const bucketName = process.env.MINIO_BUCKET_NAME ?? "";
-    const objectName = `logo-${Date.now()}-${file.originalname}`;
-    try {
-      await minioClient.putObject(
-        bucketName,
-        objectName,
-        file.buffer,
-        file.size,
-        {
-          "Content-Type": file.mimetype,
-        }
-      );
-      const logoUrl = `/${bucketName}/${objectName}`;
-      await updateProductImage(sae_id, logoUrl); // Assuming you have a similar function for updating logo URL
-      const path = new URL(`https://${process.env.MINIO_URL ?? ""}`);
-      path.pathname = logoUrl;
-      res.json({ path: path.toString() });
-    } catch (error) {
-      console.error("Error uploading logo:", error);
-      res.status(500).send("Error uploading logo.");
-    }
+app.post("/api/upload-logo", upload.single("logo"), async function (req, res) {
+  const { file } = req;
+  if (!file) {
+    res.status(400).send("No file uploaded.");
+    return;
   }
-);
+  const bucketName = process.env.MINIO_BUCKET_NAME ?? "";
+  const objectName = `logo-${Date.now()}-${file.originalname}`;
+  try {
+    await minioClient.putObject(
+      bucketName,
+      objectName,
+      file.buffer,
+      file.size,
+      {
+        "Content-Type": file.mimetype,
+      }
+    );
+    const logoUrl = `/${bucketName}/${objectName}`;
+    const logo = await uploadLogo(logoUrl);
+    const path = new URL(`https://${process.env.MINIO_URL ?? ""}`);
+    path.pathname = logoUrl;
+    res.json({
+      logo: {
+        id: logo.id,
+        imageUrl: path,
+      },
+    });
+  } catch (error) {
+    console.error("Error uploading logo:", error);
+    res.status(500).send("Error uploading logo.");
+  }
+});
 
 // API route to handle logo deletion
-app.delete("/api/products/delete-logo/:sae_id", async function (req, res) {
-  const { sae_id } = req.params;
-  if (!sae_id) {
+app.delete("/api/delete-logo/:id", async function (req, res) {
+  const { id } = req.params;
+  if (!id) {
     res.status(400).send("Missing sae_id.");
     return;
   }
   const bucketName = process.env.MINIO_BUCKET_NAME ?? "";
   try {
-    const product = await deleteProductImage(sae_id); // Assuming you have a similar function for deleting logo URL
-    if (!product) {
+    const logo = await deleteLogo(id); // Assuming you have a similar function for deleting logo URL
+    if (!logo) {
       res.status(500).send("Error deleting logo.");
       return;
     }
-    const logoUrl = product?.logoUrl; // Assuming logoUrl is the field for logo URL
+    const logoUrl = logo?.imageUrl;
     if (!logoUrl) {
       res.status(500).send("Error deleting logo.");
       return;
@@ -142,6 +143,31 @@ app.delete("/api/products/delete-logo/:sae_id", async function (req, res) {
   } catch (error) {
     console.error("Error deleting logo:", error);
     res.status(500).send("Error deleting logo.");
+  }
+});
+
+app.post("/api/slm/prompt", async function (req, res) {
+  const { prompt } = req.body;
+  const slmServer = process.env.SLM_SERVER;
+  if (!prompt || !slmServer) {
+    res.status(400).send("Missing prompt or env variable");
+    return;
+  }
+  try {
+    const url = new URL(slmServer);
+    url.pathname = "/generate_text";
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ input_data: prompt }),
+    });
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error generating text:", error);
+    res.status(500).send("Error generating text.");
   }
 });
 

@@ -7,7 +7,6 @@ type TopBatProps = {
 };
 
 export default function TopBar({ usertype }: TopBatProps) {
-  console.log(usertype);
   const routes = mainRoutes.filter((route) => route.allowed.includes(usertype));
   return (
     <div className="navbar bg-base-100 shadow-sm fixed top-0 left-0 right-0 z-50">

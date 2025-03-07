@@ -31,7 +31,6 @@ export const links: Route.LinksFunction = () => [
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const isLogIn = session.get("authenticated") === true;
-  console.log(session.get("authenticated"));
   const user: { user: UserTypes } = isLogIn
     ? { user: "admin" }
     : { user: "user" };

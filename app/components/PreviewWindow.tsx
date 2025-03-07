@@ -7,12 +7,14 @@ export default function PreviewWindow({
 }: PreviewWindowProps) {
   return (
     <div
-      className="lg:w-[30vw] max-h-screen w-screen
-      lg:fixed lg:right-0 lg:top-16 lg:bottom-0
-      bg-base-100 rounded-lg p-3 m-1 min-h-[80vh]"
+      className="lg:w-[30vw] max-h-screen w-[97dvw]
+      lg:fixed lg:right-0 lg:top-20 lg:bottom-0
+      bg-base-100 min-h-[80vh]
+      mockup-phone m-2"
     >
+      <div className="mockup-phone-camera"></div>
       <iframe
-        className="w-full h-full bg-white rounded-lg border"
+        className="mockup-phone-display w-full h-full"
         onClick={(e) => e.stopPropagation()}
         srcDoc={emailHtmlPreview ?? ""}
       />

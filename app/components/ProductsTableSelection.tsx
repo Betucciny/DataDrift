@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router";
-import type { ClientApi, ProductComplete } from "~/types";
+import type { ProductComplete } from "~/types";
 import { capitalizeFirstLetterOfEachWord } from "~/utils/strings";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type ProductsTableSelectionProps = {
   products: ProductComplete[];
@@ -22,10 +22,32 @@ export default function ProductsTableSelection({
 }: ProductsTableSelectionProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoading(false);
   }, [products]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setShown(false);
+      }
+    };
+
+    if (shown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [shown, setShown]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -58,17 +80,24 @@ export default function ProductsTableSelection({
     setLoading(true);
   };
   const handleSelectProduct = (product: ProductComplete) => {
+    setShown(false);
     setProducts((prevProducts) => {
       if (!prevProducts.some((p) => p.id === product.id)) {
         return [...prevProducts, product];
       }
       return prevProducts;
     });
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 100);
   };
 
   return (
     shown && (
-      <div className="p-4 bg-base-200 rounded-lg shadow-md flex flex-col absolute w-full mt-28 md:mt-15 z-10 left-0 right-0">
+      <div
+        ref={containerRef}
+        className="p-4 bg-base-200 rounded-lg shadow-md flex flex-col absolute w-full mt-28 md:mt-15 z-10 left-0 right-0"
+      >
         <div className="join mb-4">
           <form onSubmit={handleSearch} className="join w-full">
             <input

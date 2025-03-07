@@ -20,9 +20,9 @@ export function ProductsArray({ products, setProducts }: ProductsArrayProps) {
       action="/email"
     >
       {products.length === 0 && (
-        <div className="flex flex-col justify-center items-center my-4 h-32">
-          <h3>No hay productos agregados.</h3>
-          <p>
+        <div className="flex flex-col justify-center items-center my-4 h-32 bg-base-200 rounded-md">
+          <h3 className="text-center">No hay productos agregados.</h3>
+          <p className="text-center">
             Por favor, agregue productos mediante recomendaciones o manualmente.
           </p>
         </div>

@@ -37,7 +37,6 @@ export function meta({}: Route.MetaArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
-  console.log(formData);
   const products = [];
   for (let [key, value] of formData.entries()) {
     const match = key.match(/^product-(\d+)-(name|price|url)$/);
@@ -186,10 +185,7 @@ export default function Email({
           <div className="flex flex-row justify-between space-x-2">
             <FormGetProducts client={client} setProducts={setProducts} />
           </div>
-          {products && (
-            <ProductsArray products={products} setProducts={setProducts} />
-          )}
-          <div className="mb-4 rounded-md p-4 flex flex-col relative">
+          <div className="rounded-md p-4 flex flex-col relative">
             <ProductsTableSelection
               products={dataProducts.products}
               setProducts={setProducts}
@@ -207,6 +203,9 @@ export default function Email({
               </button>
             </div>
           </div>
+          {products && (
+            <ProductsArray products={products} setProducts={setProducts} />
+          )}
         </div>
       </div>
 

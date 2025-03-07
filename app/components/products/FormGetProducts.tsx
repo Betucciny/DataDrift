@@ -38,17 +38,17 @@ export default function FormGetProducts({
 
   return (
     <div className="flex grow flex-row justify-around items-center shadow-md rounded-lg p-4">
-      <h3 className="text-xl font-bold mb-4">Agregar productos recomendados</h3>
+      <p className="text-lg font-bold mb-4">Agregar productos recomendados</p>
       <Form
-        className="flex flex-col md:flex-row md:justify-around items-center text-base-content space-x-5"
+        className="flex flex-col md:flex-row md:justify-around justify-center text-base-content space-x-5"
         preventScrollReset
         method="get"
         onSubmit={handleSubmit}
       >
         <input type="hidden" name="client" value={client?.id ?? ""} />
         <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-          <label className="block text-lg font-semibold text-content mb-4 md:mb-0">
-            Límite:
+          <label className="input">
+            <span className="label">Límite:</span>
             <input
               type="number"
               name="limit"
@@ -58,7 +58,7 @@ export default function FormGetProducts({
           </label>
           <input type="hidden" name="offset" value={nextOffset} />
         </div>
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+        <div className="flex flex-col 2xl:flex-row space-y-2 2xl:space-y-0 2xl:space-x-2">
           <button type="submit" className="btn btn-primary">
             Agregar Productos
           </button>

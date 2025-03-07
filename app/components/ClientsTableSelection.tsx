@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router";
 import type { ClientApi } from "~/types";
 import { capitalizeFirstLetterOfEachWord } from "~/utils/strings";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type ClientsTableSelectionProps = {
   clients: ClientApi[];
@@ -24,10 +24,32 @@ export default function ClientsTableSelection({
 }: ClientsTableSelectionProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoading(false);
   }, [clients]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setShown(false);
+      }
+    };
+
+    if (shown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [shown, setShown]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -67,7 +89,10 @@ export default function ClientsTableSelection({
 
   return (
     shown && (
-      <div className="p-4 bg-base-200 rounded-lg shadow-md flex flex-col absolute w-full mt-28 md:mt-15 z-10 left-0 right-0">
+      <div
+        ref={containerRef}
+        className="p-4 bg-base-200 rounded-lg shadow-md flex flex-col absolute w-full mt-28 md:mt-15 z-10 left-0 right-0"
+      >
         <div className="join mb-4">
           <form onSubmit={handleSearch} className="join w-full">
             <input
