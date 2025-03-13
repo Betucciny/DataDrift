@@ -30,6 +30,13 @@ export async function action({ request }: Route.ActionArgs) {
   });
 }
 
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+  if (session.get("authenticated")) {
+    return redirect("/email");
+  }
+}
+
 export default function Login({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
 
@@ -44,7 +51,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
           <label className="block text-sm font-medium text-gray-700">
             2FA Token:
             <input
-              type="text"
+              type="password"
               name="token"
               required
               className="input input-bordered w-full mt-1"

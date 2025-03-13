@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ProductComplete } from "~/types";
 import { capitalizeFirstLetterOfEachWord } from "~/utils/strings";
 
@@ -7,6 +7,7 @@ type ProductShowcaseProps = {
   setProducts: React.Dispatch<React.SetStateAction<ProductComplete[]>>;
   onDelete: () => void;
   index: number;
+  totalProducts: number;
 };
 
 export default function ProductShowcase({
@@ -14,9 +15,11 @@ export default function ProductShowcase({
   index,
   onDelete,
   setProducts,
+  totalProducts,
 }: ProductShowcaseProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [text, setText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const [isGenerateLoading, setIsGenerateLoading] = useState(false);
   const [options, setOptions] = useState<string[]>([]);
 
@@ -90,14 +93,15 @@ export default function ProductShowcase({
   async function handleGenerate(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     setIsGenerateLoading(true);
-    const prompt = "Placeholder";
+    const product = inputRef.current?.value;
+    if (!product) return;
     try {
       const response = await fetch("/api/slm/prompt/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: prompt }),
+        body: JSON.stringify({ product }),
       });
       const data: string[] = await response.json();
       setOptions(data);
@@ -106,6 +110,22 @@ export default function ProductShowcase({
     } finally {
       setIsGenerateLoading(false);
     }
+  }
+
+  function moveProduct(direction: "up" | "down") {
+    setProducts((prevProducts) => {
+      const newProducts = [...prevProducts];
+      const currentIndex = newProducts.findIndex((p) => p.id === product.id);
+      if (currentIndex === -1) return newProducts;
+
+      const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+      if (newIndex < 0 || newIndex >= newProducts.length) return newProducts;
+
+      const [movedProduct] = newProducts.splice(currentIndex, 1);
+      newProducts.splice(newIndex, 0, movedProduct);
+
+      return newProducts;
+    });
   }
 
   async function handleOptionSelect(value: string) {
@@ -118,9 +138,38 @@ export default function ProductShowcase({
       <button
         className="btn btn-error absolute top-2 right-2"
         onClick={handleDelete}
+        type="button"
       >
         X
       </button>
+      {product.recommendation && (
+        <div className="absolute top-2 right-30">
+          <div className="flex items-center space-x-2">
+            <span className="font-bold">Recomendación: </span>
+            <div className="flex items-center justify-center w-8 h-8 bg-info text-info-content mask mask-heart">
+              <span>{product.recommendation}</span>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="absolute top-15 right-2 flex flex-col space-y-1">
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          onClick={() => moveProduct("up")}
+          disabled={index === 0}
+        >
+          ↑
+        </button>
+        <button
+          className="btn btn-secondary btn-sm"
+          type="button"
+          onClick={() => moveProduct("down")}
+          disabled={index === totalProducts - 1}
+        >
+          ↓
+        </button>
+      </div>
       <div className="flex lg:flex-row flex-col items-stretch space-x-4 lg:max-h-80 space-y-4">
         {product.imageUrl ? (
           <figure className="flex flex-col rounded-md">
@@ -165,6 +214,7 @@ export default function ProductShowcase({
         <label className="floating-label">
           <span>Nombre del Producto</span>
           <input
+            ref={inputRef}
             className="input w-full"
             name={`product-${index}-name`}
             defaultValue={capitalizeFirstLetterOfEachWord(product.description)}

@@ -5,6 +5,7 @@ import multer from "multer";
 import minioClient from "./minioClient";
 import { deleteProductImage, updateProductImage } from "~/.server/products";
 import { deleteLogo, uploadLogo } from "~/.server/settings";
+import { prisma } from "~/.server/db";
 
 declare module "react-router" {
   interface AppLoadContext {
@@ -110,6 +111,7 @@ app.post("/api/upload-logo", upload.single("logo"), async function (req, res) {
       logo: {
         id: logo.id,
         imageUrl: path,
+        preferred: logo.preferred,
       },
     });
   } catch (error) {
@@ -147,12 +149,22 @@ app.delete("/api/delete-logo/:id", async function (req, res) {
 });
 
 app.post("/api/slm/prompt", async function (req, res) {
-  const { prompt } = req.body;
+  const { product } = req.body;
   const slmServer = process.env.SLM_SERVER;
-  if (!prompt || !slmServer) {
+  const prompt = await prisma.prompt.findFirst({
+    where: {
+      preferred: true,
+    },
+  });
+  if (!product || !prompt || !slmServer) {
     res.status(400).send("Missing prompt or env variable");
     return;
   }
+
+  const finalPrompt = `${prompt.text} para el
+    producto: ${product}`;
+  console.log(finalPrompt);
+
   try {
     const url = new URL(slmServer);
     url.pathname = "/generate_text";
@@ -161,7 +173,38 @@ app.post("/api/slm/prompt", async function (req, res) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ input_data: prompt }),
+      body: JSON.stringify({ input_data: finalPrompt }),
+    });
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error generating text:", error);
+    res.status(500).send("Error generating text.");
+  }
+});
+
+app.post("/api/slm/intro", async function (req, res) {
+  const slmServer = process.env.SLM_SERVER;
+  const [infoCompany] = await prisma.companyInfo.findMany();
+
+  if (!slmServer || !infoCompany) {
+    res.status(400).send("Missing prompt or env variable");
+    return;
+  }
+
+  const finalPrompt = `Genera una introduccion breve y concreta para un correo
+    de publicidad de ofertas y productos que ofrece la empresa: ${infoCompany.information}}`;
+  console.log(finalPrompt);
+
+  try {
+    const url = new URL(slmServer);
+    url.pathname = "/generate_text";
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ input_data: finalPrompt }),
     });
     const data = await response.json();
     res.status(200).json(data);

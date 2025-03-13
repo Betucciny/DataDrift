@@ -35,6 +35,7 @@ export type ProductsRecommendationResponse = {
 
 export type ProductComplete = ProductApi & {
   imageUrl?: string;
+  recommendation?: number;
 };
 
 export type RecommendationProductComplete = {

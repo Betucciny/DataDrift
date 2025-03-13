@@ -8,6 +8,8 @@
 - [x] Add logo manager
 - [x] Add company info for prompts
 - [x] Add custom prompts
-- [ ] Add generate start text
-- [ ] Add generate text for each product
+- [x] Add generate start text
+- [x] Add generate text for each product
 - [ ] Metadata on the settings page
+- [ ] Finish the templates
+- [ ] Implement the email sending

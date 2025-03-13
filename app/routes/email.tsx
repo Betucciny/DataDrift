@@ -37,14 +37,26 @@ export function meta({}: Route.MetaArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
+  const action = formData.get("action");
+  if (action === "generate-preview") {
+    const emailHtmlPreview = await generateEmail(formData);
+    return { emailHtmlPreview };
+  }
+  if (action === "sendEmail") {
+    //TODO
+  }
+}
+
+async function generateEmail(formData: FormData) {
+  const introText = formData.get("introduction");
   const products = [];
   for (let [key, value] of formData.entries()) {
-    const match = key.match(/^product-(\d+)-(name|price|url)$/);
+    const match = key.match(/^product-(\d+)-(name|price|url|text)$/);
     if (match) {
       const index = parseInt(match[1]);
       const field = match[2];
       if (!products[index]) {
-        products[index] = { name: "", price: 0, url: "" };
+        products[index] = { name: "", price: 0, url: "", text: "" };
       }
       if (field === "name") {
         products[index].name = value as string;
@@ -52,18 +64,21 @@ export async function action({ request }: Route.ActionArgs) {
         products[index].price = parseFloat(value as string);
       } else if (field === "url") {
         products[index].url = value as string;
+      } else if (field === "text") {
+        products[index].text = value as string;
       }
     }
   }
-
-  console.log(products);
-
+  const info = {
+    introText,
+    products,
+  };
   const emailHtmlPreview = await render(
     <MainEmail userName="Betucciny">
       <DefaultOneProduct />
     </MainEmail>
   );
-  return { emailHtmlPreview };
+  return emailHtmlPreview;
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -83,10 +98,16 @@ async function getProductsFromRecommendatio(
   searchParams: URLSearchParams
 ): Promise<RecommendationProductComplete | undefined> {
   const client = searchParams.get("client");
-  const limit = parseInt(searchParams.get("limit") ?? "10");
-  const offset = parseInt(searchParams.get("offset") ?? "0");
-  if (!client) return undefined;
-  const products = await getProductsFromRecommendation(client, limit, offset);
+  const specificNumbers = searchParams.get("specificNumbers");
+  if (!client || !specificNumbers) return undefined;
+  const parsedSpecificNumbers = specificNumbers
+    .split(",")
+    .map((num) => parseInt(num.trim(), 10))
+    .filter((num) => !isNaN(num));
+  const products = await getProductsFromRecommendation(
+    client,
+    parsedSpecificNumbers
+  );
   const productsComplete = await getProductsComplete(products.products);
   return {
     products: productsComplete,

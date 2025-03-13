@@ -10,18 +10,23 @@ import type { Product } from "@prisma/client";
 
 export async function getProductsFromRecommendation(
   clientId: string,
-  limit: number = 10,
-  offset: number = 0
+  recommendations: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ) {
   const baseUrl = new URL(
     process.env.RECOMMENDATIONS_SERVER ?? "http://localhost:3000"
   );
-  const realLimit = limit + offset;
+  const realLimit = Math.max(...recommendations);
   baseUrl.pathname = `/recommend/${clientId}/${realLimit}`;
   const response = await fetch(baseUrl.toString());
   const data: ProductsRecommendationResponse = await response.json();
-  const products = data.products.slice(offset, realLimit);
-  return { clients: data.client, products };
+  const products = data.products.map((product, index) => ({
+    ...product,
+    recommendation: index + 1,
+  }));
+  const filteredProducts = products.filter((product) =>
+    recommendations.includes(product.recommendation)
+  );
+  return { clients: data.client, products: filteredProducts };
 }
 
 export async function getProductsSearch(
@@ -39,8 +44,12 @@ export async function getProductsSearch(
   return data;
 }
 
+type ProductApiWithIndex = ProductApi & {
+  recommendation?: number;
+};
+
 export async function getProductsComplete(
-  products: ProductApi[]
+  products: ProductApiWithIndex[]
 ): Promise<ProductComplete[]> {
   const ids = products.map((product) => product.id);
   const productsDb = await prisma.product.findMany({

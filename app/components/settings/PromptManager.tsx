@@ -37,6 +37,7 @@ function PromptTextArea({ prompt }: { prompt: Prompt }) {
       <textarea
         className="textarea grow w-full"
         name="prompt"
+        key="prompt"
         defaultValue={prompt.text}
         ref={textareaRef}
         disabled={!editable}
@@ -97,7 +98,7 @@ export default function PromptManager({ prompts }: PromptManagerProps) {
   return (
     <div className="p-2">
       <h2 className="text-2xl font-bold mb-4">Prompts</h2>
-      <Form method="post" className="mb-4">
+      <Form method="post" className="mb-4" reloadDocument>
         <input className="hidden" name="action" defaultValue="create-prompt" />
         <label className="floating-label">
           <span>Tu Prompt aqui</span>
@@ -120,8 +121,10 @@ export default function PromptManager({ prompts }: PromptManagerProps) {
       </div>
       {prompts.length === 0 && (
         <div className="flex flex-col justify-center items-center my-4 h-32 bg-base-200 rounded-md">
-          <h3>No hay prompts agregados.</h3>
-          <p>Por favor, agregue prompts para usar para generar mensajes.</p>
+          <h3 className="text-center">No hay prompts agregados.</h3>
+          <p className="text-center">
+            Por favor, agregue prompts para usar para generar mensajes.
+          </p>
         </div>
       )}
     </div>

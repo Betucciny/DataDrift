@@ -32,13 +32,14 @@ export default function LogoManagement({
       }
 
       const { logo } = await response.json();
+      console.log(logo);
       setLogos((prevLogos) => {
         const newLogo: Logo = {
           id: logo.id,
           imageUrl: logo.imageUrl,
           createdAt: new Date(),
           updatedAt: new Date(),
-          preferred: false,
+          preferred: logo.preferred,
         };
         return [...prevLogos, newLogo];
       });
@@ -115,7 +116,7 @@ export default function LogoManagement({
               className="relative flex flex-col space-y-2 items-center justify-center rounded-md mb-2 md:mb-0 aspect-square h-64"
             >
               {logo.preferred && (
-                <div className="absolute top-0 z-50 -right-2 bg-success text-success-content text-4xl mask mask-hexagon p-2">
+                <div className="absolute top-0 z-10 -right-2 bg-success text-success-content text-4xl mask mask-hexagon p-2">
                   ✓
                 </div>
               )}

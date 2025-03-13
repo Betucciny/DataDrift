@@ -38,6 +38,7 @@ export default function CompanyInfo({ companyInfo }: CompanyInfoProps) {
             ref={textareaRef}
             name="company-info"
             rows={3}
+            key="company-info"
             defaultValue={companyInfo}
             disabled={!editable}
             className="textarea w-full"
