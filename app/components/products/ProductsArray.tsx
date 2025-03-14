@@ -1,14 +1,19 @@
 import { Form } from "react-router";
-import type { ProductComplete } from "~/types";
+import type { ClientApi, ProductComplete } from "~/types";
 import ProductShowcase from "./ProductShowcase";
 import { useState } from "react";
 
 type ProductsArrayProps = {
   products: ProductComplete[];
+  client: ClientApi | null;
   setProducts: React.Dispatch<React.SetStateAction<ProductComplete[]>>;
 };
 
-export function ProductsArray({ products, setProducts }: ProductsArrayProps) {
+export function ProductsArray({
+  products,
+  setProducts,
+  client,
+}: ProductsArrayProps) {
   const [isGenerateLoading, setIsGenerateLoading] = useState(false);
   const [options, setOptions] = useState<string[]>([]);
   const [text, setText] = useState("");
@@ -49,6 +54,7 @@ export function ProductsArray({ products, setProducts }: ProductsArrayProps) {
       action="/email"
     >
       <input name="action" defaultValue="generate-preview" className="hidden" />
+      <input name="client" defaultValue={client?.name} className="hidden" />
       <div className="flex flex-col space-y-2 rounded-md">
         <label className="floating-label">
           <span>Texto introductorio</span>
@@ -85,6 +91,13 @@ export function ProductsArray({ products, setProducts }: ProductsArrayProps) {
                 <span>{option}</span>
               </div>
             ))}
+            <button
+              onClick={() => setOptions([])}
+              type="button"
+              className="btn btn-error"
+            >
+              Cancelar
+            </button>
           </div>
         )}
       </div>

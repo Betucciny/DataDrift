@@ -10,6 +10,6 @@
 - [x] Add custom prompts
 - [x] Add generate start text
 - [x] Add generate text for each product
-- [ ] Metadata on the settings page
+- [x] Metadata on the settings page
 - [ ] Finish the templates
 - [ ] Implement the email sending

@@ -54,7 +54,6 @@ export default function FormGetProducts({
       }
     } else {
       const specificNumbersInput = formData.get("specificNumbers") as string;
-      console.log(specificNumbersInput);
       specificNumbers = specificNumbersInput
         .split(",")
         .map((num) => parseInt(num.trim(), 10))
@@ -68,7 +67,6 @@ export default function FormGetProducts({
         return;
       }
     }
-    console.log(specificNumbers);
     setSearchParams((prev) => {
       prev.set("client", client.id);
       prev.set("specificNumbers", specificNumbers.join(","));

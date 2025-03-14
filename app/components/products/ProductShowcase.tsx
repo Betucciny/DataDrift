@@ -266,6 +266,13 @@ export default function ProductShowcase({
                 <span>{option}</span>
               </div>
             ))}
+            <button
+              onClick={() => setOptions([])}
+              type="button"
+              className="btn btn-error"
+            >
+              Cancelar
+            </button>
           </div>
         )}
         <input

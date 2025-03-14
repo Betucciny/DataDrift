@@ -7,6 +7,7 @@ import {
   editPrompt,
   getCompanyInfo,
   getLogos,
+  getMetadata,
   getPrompts,
   selectPreferredPrompt,
   setFavoriteLogo,
@@ -15,16 +16,18 @@ import {
 import { useState } from "react";
 import PromptManager from "~/components/settings/PromptManager";
 import CompanyInfo from "~/components/settings/CompanyInfo";
+import Metadata from "~/components/settings/Metadata";
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAuth(request);
-  const [logos, prompts, companyInfo] = await Promise.all([
+  const [logos, prompts, companyInfo, metadata] = await Promise.all([
     getLogos(),
     getPrompts(),
     getCompanyInfo(),
+    getMetadata(),
   ]);
 
-  return { logos, prompts, companyInfo };
+  return { logos, prompts, companyInfo, metadata };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -79,6 +82,7 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
       <LogoManagement logos={logos} setLogos={setLogos} />
       <CompanyInfo companyInfo={loaderData.companyInfo} />
       <PromptManager prompts={loaderData.prompts} />
+      <Metadata metadata={loaderData.metadata} />
     </div>
   );
 }

@@ -2,7 +2,6 @@ import PreviewWindow from "~/components/PreviewWindow";
 import type { Route } from "./+types/email";
 import { render } from "@react-email/components";
 import MainEmail from "~/emails/MainEmail";
-import DefaultOneProduct from "~/emails/templates/DefaultOneProduct";
 import { getClientsSearch } from "~/.server/clients";
 import ClientsTableSelection from "~/components/ClientsTableSelection";
 import type {
@@ -27,6 +26,11 @@ import { useSearchParams } from "react-router";
 import FormGetProducts from "~/components/products/FormGetProducts";
 import ProductsTableSelection from "~/components/ProductsTableSelection";
 import { requireAuth } from "~/.server/auth";
+import { getPreferredLogo } from "~/.server/settings";
+import MultipleProductsTemplate from "~/emails/templates/MultipleProductsTemplate";
+import FooterTemplate from "~/emails/templates/FooterTemplate";
+import EmailForm from "~/components/EmailForm";
+import { sendEmail } from "~/.server/email";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -40,15 +44,49 @@ export async function action({ request }: Route.ActionArgs) {
   const action = formData.get("action");
   if (action === "generate-preview") {
     const emailHtmlPreview = await generateEmail(formData);
-    return { emailHtmlPreview };
+    return { emailHtmlPreview, success: undefined };
   }
-  if (action === "sendEmail") {
-    //TODO
+  if (action === "send-email") {
+    return await sendEmailAction(formData);
+  }
+}
+
+async function sendEmailAction(formData: FormData) {
+  const email = formData.get("client-email");
+  const emailHtmlPreview = formData.get("html");
+  if (!email || !emailHtmlPreview) {
+    return {
+      emailHtmlPreview: emailHtmlPreview?.toString(),
+      success: "Ha ocurrido un error",
+    };
+  }
+  const emails = email
+    .toString()
+    .split(";")
+    .map((e) => e.trim());
+
+  const result = await sendEmail(
+    emails,
+    "Productos que te podrían interesar",
+    emailHtmlPreview.toString()
+  );
+
+  if (result) {
+    return {
+      emailHtmlPreview: emailHtmlPreview.toString(),
+      success: `Se enviaron los correos a: ${emails.join(", ")}`,
+    };
+  } else {
+    return {
+      emailHtmlPreview: emailHtmlPreview.toString(),
+      success: `Error enviando los correos a: ${emails.join(", ")}`,
+    };
   }
 }
 
 async function generateEmail(formData: FormData) {
-  const introText = formData.get("introduction");
+  const introText = formData.get("introduction")?.toString();
+  const clientName = formData.get("client")?.toString();
   const products = [];
   for (let [key, value] of formData.entries()) {
     const match = key.match(/^product-(\d+)-(name|price|url|text)$/);
@@ -69,13 +107,28 @@ async function generateEmail(formData: FormData) {
       }
     }
   }
-  const info = {
-    introText,
-    products,
-  };
+  const logoUrl = await getPreferredLogo();
+  const email = process.env.EMAIL_USER ?? "";
+  const companyName = process.env.COMPANY_NAME ?? "";
+  const slogan = process.env.SLOGAN ?? "";
+  const website = process.env.COMPANY_WEBSITE ?? "";
+  const whatsapp = process.env.WHATSAPP ?? "";
+  const facebook = process.env.FACEBOOK ?? "";
+  const address = process.env.ADDRESS ?? "";
+
   const emailHtmlPreview = await render(
-    <MainEmail userName="Betucciny">
-      <DefaultOneProduct />
+    <MainEmail logoUrl={logoUrl} clientName={clientName} introText={introText}>
+      <MultipleProductsTemplate products={products} />
+      <FooterTemplate
+        email={email}
+        logoUrl={logoUrl}
+        companyName={companyName}
+        slogan={slogan}
+        website={website}
+        whatsapp={whatsapp}
+        facebook={facebook}
+        address={address}
+      />
     </MainEmail>
   );
   return emailHtmlPreview;
@@ -175,6 +228,10 @@ export default function Email({
     setProducts([]);
   }, [client]);
 
+  useEffect(() => {
+    if (actionData?.success) alert(actionData.success);
+  }, [actionData]);
+
   return (
     <div className="flex flex-col flex-1 lg:mr-[30vw] mr-0">
       <div className="flex-1 overflow-y-scroll m-3">
@@ -225,11 +282,20 @@ export default function Email({
             </div>
           </div>
           {products && (
-            <ProductsArray products={products} setProducts={setProducts} />
+            <ProductsArray
+              products={products}
+              setProducts={setProducts}
+              client={client}
+            />
           )}
         </div>
+        {emailHtmlPreview !== "" && (
+          <EmailForm
+            clientEmail={client?.email ?? null}
+            emailHtmlPreview={emailHtmlPreview}
+          />
+        )}
       </div>
-
       <PreviewWindow emailHtmlPreview={emailHtmlPreview} />
     </div>
   );

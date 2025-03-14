@@ -42,3 +42,10 @@ export type RecommendationProductComplete = {
   client: ClientApi;
   products: ProductComplete[];
 };
+
+export type ResponseMetadata = {
+  num_factors: number;
+  regularization: number;
+  confidence_multiplier: number;
+  epr: number;
+};

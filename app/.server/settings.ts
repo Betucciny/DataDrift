@@ -1,3 +1,4 @@
+import type { ResponseMetadata } from "~/types";
 import { prisma } from "./db";
 
 export async function uploadLogo(url: string) {
@@ -23,6 +24,21 @@ export async function getLogos() {
       imageUrl: baseURL.toString(),
     };
   });
+}
+
+export async function getPreferredLogo() {
+  const minioURL = process.env.MINIO_URL;
+  if (!minioURL) throw new Error("MINIO_URL environment variable is not set");
+  const baseURL = new URL(`https://${minioURL}`);
+  baseURL.pathname =
+    (
+      await prisma.logo.findFirst({
+        where: {
+          preferred: true,
+        },
+      })
+    )?.imageUrl || "";
+  return baseURL.toString();
 }
 
 export async function deleteLogo(id: string) {
@@ -142,4 +158,15 @@ export async function updateCompanyInfo(information: string) {
 export async function getCompanyInfo() {
   const companyInfo = await prisma.companyInfo.findFirst();
   return companyInfo ? companyInfo.information : "";
+}
+
+export async function getMetadata() {
+  const recommendationsServer = process.env.RECOMMENDATIONS_SERVER;
+  if (!recommendationsServer)
+    throw new Error("RECOMMENDATIONS_SERVER environment variable is not set");
+  const url = new URL(recommendationsServer);
+  url.pathname = "/metadata";
+  const response = await fetch(url);
+  const data: ResponseMetadata = await response.json();
+  return data;
 }

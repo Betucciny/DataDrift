@@ -32,7 +32,6 @@ export default function LogoManagement({
       }
 
       const { logo } = await response.json();
-      console.log(logo);
       setLogos((prevLogos) => {
         const newLogo: Logo = {
           id: logo.id,
