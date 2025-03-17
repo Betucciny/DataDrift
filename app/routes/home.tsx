@@ -3,7 +3,7 @@ import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Generador de Recomendaciones por Correo" },
+    { title: "DataDrift" },
     {
       name: "description",
       content:

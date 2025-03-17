@@ -13,3 +13,4 @@
 - [x] Metadata on the settings page
 - [x] Finish the templates
 - [x] Implement the email sending
+- [ ] DockerFile :)

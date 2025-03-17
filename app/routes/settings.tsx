@@ -18,6 +18,17 @@ import PromptManager from "~/components/settings/PromptManager";
 import CompanyInfo from "~/components/settings/CompanyInfo";
 import Metadata from "~/components/settings/Metadata";
 
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "DataDrift | Configuración" },
+    {
+      name: "description",
+      content:
+        "Genera recomendaciones personalizadas por correo para tus clientes.",
+    },
+  ];
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAuth(request);
   const [logos, prompts, companyInfo, metadata] = await Promise.all([

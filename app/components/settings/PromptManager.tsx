@@ -1,5 +1,5 @@
 import type { Prompt } from "@prisma/client";
-import { useEffect, useRef, useState, type MouseEventHandler } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Form } from "react-router";
 
 type PromptManagerProps = {

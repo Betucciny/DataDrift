@@ -34,8 +34,12 @@ import { sendEmail } from "~/.server/email";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "DataDrift | Genera Emails" },
+    {
+      name: "description",
+      content:
+        "Genera recomendaciones personalizadas por correo para tus clientes.",
+    },
   ];
 }
 

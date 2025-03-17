@@ -51,7 +51,9 @@ export default function TopBar({ usertype }: TopBatProps) {
             ))}
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">DataDrift</a>
+        <NavLink className="btn btn-ghost text-xl" to={"/"}>
+          DataDrift
+        </NavLink>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
