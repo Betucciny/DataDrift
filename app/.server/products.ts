@@ -64,7 +64,7 @@ export async function getProductsComplete(
       (productDb) => productDb.sae_id === product.id
     );
     const path = productDb?.imageUrl
-      ? new URL(`https://${process.env.MINIO_URL ?? ""}`)
+      ? new URL(`https://${process.env.MINIO_URL_PUBLIC ?? ""}`)
       : undefined;
     if (productDb?.imageUrl) {
       path!.pathname = productDb.imageUrl;

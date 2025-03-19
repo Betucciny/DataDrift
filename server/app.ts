@@ -74,7 +74,7 @@ app.post(
       );
       const imageUrl = `/${bucketName}/${objectName}`;
       await updateProductImage(sae_id, imageUrl);
-      const path = new URL(`https://${process.env.MINIO_URL ?? ""}`);
+      const path = new URL(`https://${process.env.MINIO_URL_PUBLIC ?? ""}`);
       path.pathname = imageUrl;
       res.json({ path: path.toString() });
     } catch (error) {
@@ -105,7 +105,7 @@ app.post("/api/upload-logo", upload.single("logo"), async function (req, res) {
     );
     const logoUrl = `/${bucketName}/${objectName}`;
     const logo = await uploadLogo(logoUrl);
-    const path = new URL(`https://${process.env.MINIO_URL ?? ""}`);
+    const path = new URL(`https://${process.env.MINIO_URL_PUBLIC ?? ""}`);
     path.pathname = logoUrl;
     res.json({
       logo: {

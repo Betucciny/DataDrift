@@ -13,7 +13,7 @@ export async function uploadLogo(url: string) {
 }
 
 export async function getLogos() {
-  const minioURL = process.env.MINIO_URL;
+  const minioURL = process.env.MINIO_URL_PUBLIC;
   if (!minioURL) throw new Error("MINIO_URL environment variable is not set");
   const logos = await prisma.logo.findMany();
   return logos.map((logo) => {
@@ -27,7 +27,7 @@ export async function getLogos() {
 }
 
 export async function getPreferredLogo() {
-  const minioURL = process.env.MINIO_URL;
+  const minioURL = process.env.MINIO_URL_PUBLIC;
   if (!minioURL) throw new Error("MINIO_URL environment variable is not set");
   const baseURL = new URL(`https://${minioURL}`);
   baseURL.pathname =
